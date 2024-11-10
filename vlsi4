@@ -1,0 +1,175 @@
+Experiment No. 4
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+---- Uncomment the following library declaration if instantiating
+---- any Xilinx primitives in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity exp4fifo is
+generic( RAMsize : integer :=4);
+    Port ( data_in : in  STD_LOGIC_VECTOR (3 downto 0);
+           clk : in  STD_LOGIC;
+           nrst : in  STD_LOGIC;
+           writeReq : in  STD_LOGIC;
+           readReq : in  STD_LOGIC;
+           data_out : out  STD_LOGIC_VECTOR (3 downto 0);
+           empty : out  STD_LOGIC;
+           error : out  STD_LOGIC;
+           full : out  STD_LOGIC);
+end exp4fifo;
+
+architecture Behavioral of exp4fifo is
+type memory_type is array (0 to RAMsize-1) of std_logic_vector(3 downto 0);
+signal memory:memory_type:=(others=> (others=>'0'));
+begin
+process(clk, nrst)
+variable read_ptr, write_ptr : std_logic_vector(1 downto 0):="00";
+variable isempty, isfull: std_logic :='0';
+begin
+if nrst= '0' then
+memory<= (others => (others=> '0'));
+empty <= '1';
+full<= '0';
+data_out <="0000";
+read_ptr := "00";
+write_ptr :="00";
+isempty := '0';
+isfull:='0';
+error <= '0';
+else if clk' event and clk='1' then
+
+if readReq ='1' then
+if isempty = '1' then
+ error  <= '1';
+ else 
+ data_out <= memory(conv_integer (read_ptr));
+ isfull :='0';
+ full<= '0';
+ error<= '0';
+ if read_ptr = conv_std_logic_vector (RAMsize - 1 , 4) then
+ read_ptr := "00";
+ else 
+ read_ptr := read_ptr + '1';
+ end if;
+ if read_ptr = write_ptr then 
+ isempty := '1';
+empty <= '1';
+end if;
+end if;
+end if; 
+
+if writeReq ='1' then
+if isfull = '1' then
+ error  <= '1';
+ else 
+ memory(conv_integer (write_ptr))<= data_in; 
+ isempty :='0';
+ empty <= '0';
+ error<= '0';
+ if write_ptr = conv_std_logic_vector (RAMsize - 1 , 4) then
+ write_ptr := "00";
+ else 
+ write_ptr := write_ptr + '1';
+ end if;
+ if write_ptr = read_ptr then 
+ isfull:= '1';
+full <= '1';
+end if;
+end if;
+end if; 
+end if;
+end if;
+end process;
+end Behavioral;
+----------------------------------------------------------------------------------------------
+Teast bench
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_unsigned.all;
+USE ieee.numeric_std.ALL;
+
+ENTITY testfifo_vhd IS
+END testfifo_vhd;
+
+ARCHITECTURE behavior OF testfifo_vhd IS 
+
+	-- Component Declaration for the Unit Under Test (UUT)
+	COMPONENT exp4fifo
+	PORT(
+		data_in : IN std_logic_vector(3 downto 0);
+		clk : IN std_logic;
+		nrst : IN std_logic;
+		writeReq : IN std_logic;
+		readReq : IN std_logic;          
+		data_out : OUT std_logic_vector(3 downto 0);
+		empty : OUT std_logic;
+		error : OUT std_logic;
+		full : OUT std_logic
+		);
+	END COMPONENT;
+	--Inputs
+	SIGNAL clk :  std_logic := '0';
+	SIGNAL nrst :  std_logic := '0';
+	SIGNAL writeReq :  std_logic := '0';
+	SIGNAL readReq :  std_logic := '0';
+	SIGNAL data_in :  std_logic_vector(3 downto 0) := (others=>'0');
+
+	--Outputs
+	SIGNAL data_out :  std_logic_vector(3 downto 0);
+	SIGNAL empty :  std_logic;
+	SIGNAL error :  std_logic;
+	SIGNAL full :  std_logic;
+constant clk_period : time :=10 ns ;
+BEGIN
+
+	-- Instantiate the Unit Under Test (UUT)
+	uut: exp4fifo PORT MAP(
+		data_in => data_in,
+		clk => clk,
+		nrst => nrst,
+		writeReq => writeReq,
+		readReq => readReq,
+		data_out => data_out,
+		empty => empty,
+		error => error,
+		full => full
+	);
+	tb : PROCESS
+	BEGIN
+
+		-- Wait 100 ns for global reset to finish\
+		clk <= '0';
+		wait for clk_period/2;
+		clk<= '1';
+		wait for clk_period/2;
+		end process;
+		Process
+		BEGIN
+		wait for 10 ns;
+		nrst <= '0';
+		wait for 10 ns;
+		nrst <= '1';
+		writeReq <= '1';
+		data_in <= "1111";
+		wait for 10 ns;
+		readReq<= '0';
+		writeReq <= '1';
+		data_in <= "1011";
+		wait for 10 ns;
+		readReq<= '1';
+		writeReq <= '0';
+		-- Place stimulus here
+		wait; -- will wait forever
+	END PROCESS;
+END;
+-----------------------------------------------------------------------------
+Block Diagram
+ 
+RLT Schematic
+ 
+Output
+ 
