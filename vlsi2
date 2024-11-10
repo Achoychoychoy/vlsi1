@@ -1,0 +1,187 @@
+Experiment No.2
+-- Company: 
+-- Engineer: 
+-- Create Date:    21:43:52 07/21/2024 
+-- Design Name: 
+-- Module Name:    universalE2 - Behavioral 
+-- Project Name: 
+-- Target Devices: 
+-- Tool versions: 
+-- Description: 
+-- Dependencies: 
+-- Revision: 
+-- Revision 0.01 - File Created
+-- Additional Comments: 
+----------------------------------------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+---- Uncomment the following library declaration if instantiating
+---- any Xilinx primitives in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity universalE2 is
+    Port ( clk : in  STD_LOGIC;
+           pi : in  STD_LOGIC_VECTOR (7 downto 0);
+           mode : in  STD_LOGIC_VECTOR (1 downto 0);
+           po : out  STD_LOGIC_VECTOR (7 downto 0);
+           so : out  STD_LOGIC;
+           si : in  STD_LOGIC;
+           load : in  STD_LOGIC);
+end universalE2;
+
+architecture Behavioral of universalE2 is
+signal temp: std_logic_vector (7 downto 0);
+begin
+process (clk)
+begin
+if(clk' event and clk='1') then
+case mode is
+
+when"00" => --siso
+temp(7 downto 1)<= temp(6 downto 0); 
+temp(0)<=si;
+so<=temp(0);
+
+when"01" => --piso
+if(load='1') then
+temp<=pi;
+else
+temp<='0' & temp(7 downto 1);
+so<=temp(0);
+end if;
+
+when"10" => --sipo
+temp(7 downto 1)<= temp(6 downto 0); 
+temp(0)<=si;
+po<=temp;
+
+when"11" => --pipo
+po<=pi;
+when others=> NULL;
+
+end case;
+end if;
+end process;
+end Behavioral;
+
+--------------------------------------------------------------------------------
+Test bench	
+-- Company: 
+-- Engineer:
+-- Create Date:   22:02:19 07/21/2024
+-- Design Name:   universalE2
+-- Module Name:   C:/Xilinx92i/UniversalExp2/universal test.vhd
+-- Project Name:  UniversalExp2
+-- Target Device:  
+-- Tool versions:  
+-- Description:   
+-- VHDL Test Bench Created by ISE for module: universalE2
+-- Dependencies:
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- Notes: 
+-- This testbench has been automatically generated using types std_logic and
+-- std_logic_vector for the ports of the unit under test.  Xilinx recommends 
+-- that these types always be used for the top-level I/O of a design in order 
+-- to guarantee that the testbench will bind correctly to the post-implementation 
+-- simulation model.
+--------------------------------------------------------------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_unsigned.all;
+USE ieee.numeric_std.ALL;
+
+ENTITY universal test_vhd IS
+END universal test_vhd;
+
+ARCHITECTURE behavior OF universal test_vhd IS 
+
+	-- Component Declaration for the Unit Under Test (UUT)
+	COMPONENT universalE2
+	PORT(
+		clk : IN std_logic;
+		pi : IN std_logic_vector(7 downto 0);
+		mode : IN std_logic_vector(1 downto 0);
+		si : IN std_logic;
+		load : IN std_logic;          
+		po : OUT std_logic_vector(7 downto 0);
+		so : OUT std_logic
+		);
+	END COMPONENT;
+
+	--Inputs
+	SIGNAL clk :  std_logic := '0';
+	SIGNAL si :  std_logic := '0';
+	SIGNAL load :  std_logic := '0';
+	SIGNAL pi :  std_logic_vector(7 downto 0) := (others=>'0');
+	SIGNAL mode :  std_logic_vector(1 downto 0) := (others=>'0');
+
+	--Outputs
+	SIGNAL po :  std_logic_vector(7 downto 0);
+	SIGNAL so :  std_logic;
+constant clk_period: time: 10ns;
+BEGIN
+	-- Instantiate the Unit Under Test (UUT)
+	uut: universalE2 PORT MAP(
+		clk => clk,
+		pi => pi,
+		mode => mode,
+		po => po,
+		so => so,
+		si => si,
+		load => load
+	);
+process
+begin
+clk<='0';
+wait for clk_period/2;
+clk<='1';
+wait for clk_period/2;
+end process;
+	tb : PROCESS
+	BEGIN
+		-- Wait 100 ns for global reset to finish
+		--wait for 100 ns;
+		-- Place stimulus here
+      mode<="00";
+		si<='1';
+		wait for 20 ns;
+		
+		mode<="01"';
+		load<='1';
+		pi<="10101010";
+		wait for 20 ns;
+		load<='0';
+		wait for 80 ns;
+		
+		mode<='10';
+		si<='0';
+		wait for 10 ns;
+		si<='0';
+		wait for 10 ns;
+		si<='0';
+		wait for 10 ns;
+		si<=;'0';
+		wait for 10 ns;
+		si<='1';
+		wait for 10 ns;
+		si<='1';
+		wait for 10 ns;
+		si<='1';
+		wait for 10 ns;
+		si<='1';
+		wait for 20 ns;
+		
+		mode<='11';
+		pi<="11001100";
+		wait for 20 ns;
+		wait; -- will wait forever
+	END PROCESS;
+
+END;
+ 
