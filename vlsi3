@@ -1,0 +1,113 @@
+Experiment No.  3
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+---- Uncomment the following library declaration if instantiating
+---- any Xilinx primitives in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity Exp3 is
+    Port ( clk : in  STD_LOGIC;
+           output : out  STD_LOGIC_VECTOR (3 downto 0);
+           rst : in  STD_LOGIC;
+           up_down : in  STD_LOGIC
+			 );
+end Exp3;
+
+architecture Behavioral of Exp3 is
+signal count:STD_LOGIC_VECTOR(3 downto 0):="0000";
+
+begin
+process(clk)
+begin
+if (clk'event and clk='1')then
+if(rst='1')then
+count<="0000";
+elsif(up_down='1')then
+if(count="1001")then count<="0000";
+else count<=count+1;
+end if;
+
+elsif(up_down='0')then
+if(count="0000")then count<="1001";
+else count<=count-1;
+end if;
+
+end if;
+end if;
+end process;
+output<=count;
+end Behavioral;
+----------------------------------------------------------------------------------
+Test bench
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_unsigned.all;
+USE ieee.numeric_std.ALL;
+
+ENTITY TestForExp3_vhd IS
+END TestForExp3_vhd;
+
+ARCHITECTURE behavior OF TestForExp3_vhd IS 
+	-- Component Declaration for the Unit Under Test (UUT)
+	COMPONENT Exp3
+	PORT(
+		clk : IN std_logic;
+		rst : IN std_logic;
+		up_down : IN std_logic;          
+		output : OUT std_logic_vector(3 downto 0)
+		);
+	END COMPONENT;
+
+	--Inputs
+	SIGNAL clk :  std_logic := '0';
+	SIGNAL rst :  std_logic := '0';
+	SIGNAL up_down :  std_logic := '0';
+
+	--Outputs
+	SIGNAL output :  std_logic_vector(3 downto 0);
+
+BEGIN
+	-- Instantiate the Unit Under Test (UUT)
+	uut: Exp3 PORT MAP(
+		clk => clk,
+		output => output,
+		rst => rst,
+		up_down => up_down
+	);
+clock: PROCESS
+BEGIN
+---Wait for 100ns for global reset to finish
+	clk <= '1';
+	wait for 5 ns;
+	clk <= '0';
+	wait for 5 ns;
+	END PROCESS;
+	
+	tb : PROCESS
+	BEGIN
+		-- Wait 100 ns for global reset to finish
+		wait for 10 ns;
+		-- Place stimulus here
+		rst <= '1';
+		wait for 10 ns;
+		rst<='0';
+		up_down <= '1';
+		wait for 100 ns;
+		up_down <= '0';
+		wait; -- will wait forever
+	END PROCESS;
+
+END;
+----------------------------------------------------------------------------------
+Block diagram
+ 
+
+RLT Schematic
+ 
+
+Output
+ 
